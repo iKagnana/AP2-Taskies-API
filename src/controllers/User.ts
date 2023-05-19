@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import bcrypt from "bcrypt";
+import { getToken } from "~/config/token";
 import { User } from "../models/User";
 
 const ObjectId = mongoose.Types.ObjectId;
@@ -51,6 +52,30 @@ const addUser = (req: any, res: any) => {
         })
         .catch(err => res.status(500).send(err));
 }
+
+const login = (req: any, res: any) => {
+    const identifiant = req.body.email;
+    console.log("hello")
+    User.findOne({ email: identifiant })
+        .then((user) => {
+            if (user !== null) {
+                bcrypt.compare(req.body.password, user.password)
+                    .then((passwordCheck) => {
+                        if (!passwordCheck) {
+                            return res.status(500).send({
+                                valid: false,
+                                message: "Mauvais mot de passe"
+                            })
+                        }
+                        console.log(getToken(req.body))
+                        res.send({ valid: true, accessToken: getToken(req.body) })
+                    })
+            }
+
+        })
+
+}
+
 //#endregion POST
 //#region PUT
 const changePassword = (req: any, res: any) => {
@@ -84,5 +109,6 @@ export const userController = {
     getUsersByPole,
     getUserById,
     addUser,
+    login,
     changePassword,
 }

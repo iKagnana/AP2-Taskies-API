@@ -72,14 +72,12 @@ const login = (req: Request, res: Response) => {
     User.findOne({ email: email })
         .then((user) => {
             if (!user) {
-                const error = new Error("Aucun utilisateur trouvé");
-                throw error;
+                return res.status(404).send("Aucun utilisateur trouvé")
             }
             bcrypt.compare(password, user.password)
             .then((isEqual) => {
                 if (!isEqual) {
-                    const error = new Error("Mauvais mot de passe");
-                    throw error;
+                    return res.status(401).send("Mauvais mot de passe")
                 }
                 const token = jwt.sign(
                     { email: email, _id: user._id },
@@ -87,7 +85,7 @@ const login = (req: Request, res: Response) => {
                     { expiresIn: "5h" }
                 );
 
-                res.send({ user: user, token: token, message: "Vous êtes connecté", status: true });
+                res.status(200).send({ user: user, token: token, message: "Vous êtes connecté", status: true });
             })
 
         });

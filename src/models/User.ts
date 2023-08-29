@@ -8,7 +8,7 @@ const UserSchema = new Schema({
     password: { type: String, required: true },
     pole: { type: String, required: true },
     tasks: [{ type: Schema.Types.ObjectId, ref: "Task" }],
-    role: { type: Number, requried: true }
+    role: { type: Number, required: true }
 });
 
 export const User = mongoose.model("User", UserSchema);

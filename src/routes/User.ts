@@ -9,5 +9,6 @@ router.get("/:pole", userController.getUsersByPole);
 router.get("/:id", userController.getUserById);
 //#region POST
 router.post("/", userController.addUser);
-
+router.post("/login", userController.login);
+router.post("/password/:id", userController.changePassword);
 export const userRoute = router;

@@ -1,11 +1,13 @@
 import mongoose from "mongoose";
 import bcrypt from "bcrypt";
 import { User } from "../models/User";
+import express, {Request, Response} from "express";
+import jwt from "jsonwebtoken"
 
 const ObjectId = mongoose.Types.ObjectId;
 
 //#region GET
-const getUsers = (req: any, res: any) => {
+const getUsers = (req: Request, res: Response) => {
     User.find((err: any, docs: any) => {
         if (!err) {
             res.status(201).send(docs);
@@ -16,18 +18,18 @@ const getUsers = (req: any, res: any) => {
     });
 };
 
-const getUsersByPole = (req: any, res: any) => {
+const getUsersByPole = (req: Request, res: Response) => {
     User.find({ pole: req.params.pole }, (err: any, docs: any) => {
         if (!err) {
             res.status(201).send(docs)
         } else {
-            res.status(505).message(`Nous n'avons pas pu récupérer les données pour le pole ${req.params.pole}`)
+            res.status(505).send(`Nous n'avons pas pu récupérer les données pour le pole ${req.params.pole}`)
         }
     })
 
 }
 
-const getUserById = (req: any, res: any) => {
+const getUserById = (req: Request, res: Response) => {
     User.findOne({ _id: req.params.id }, (err: any, docs: any) => {
         if (!err) {
             res.status(201).send(docs)
@@ -42,18 +44,58 @@ const getUserById = (req: any, res: any) => {
 
 //#endregion GET
 //#region POST
-const addUser = (req: any, res: any) => {
+const addUser = (req: Request, res: Response) => {
     let user = req.body;
-    let newUser = new User(user);
-    newUser.save()
-        .then((docs) => {
-            res.send(docs);
+    let password = req.body.password
+
+    //hash password
+    bcrypt
+        .hash(password, 10)
+        .then((hashedPw) => {
+            user.password = hashedPw
+            let newUser = new User(user);
+            return newUser.save();
         })
-        .catch(err => res.status(500).send(err));
+        .then((docs) => {
+            res.status(201).send(docs);
+        })
+        .catch((err) => {
+            console.log(err);
+            res.send(err);
+        });
+}
+
+const login = (req: Request, res: Response) => {
+    const email = req.body.email;
+    const password = req.body.password;
+    let isEqual : Promise<boolean>
+    User.findOne({ email: email })
+        .then((user) => {
+            if (!user) {
+                const error = new Error("Aucun utilisateur trouvé");
+                throw error;
+            }
+            console.log(user.password);
+            isEqual =  bcrypt.compare(password, user.password);
+
+            console.log(isEqual);
+            if (!isEqual) {
+                const error = new Error("Mauvais mot de passe");
+                throw error;
+            }
+
+            const token = jwt.sign(
+                { email: email, _id: user._id },
+                process.env.SECRET_KEY!,
+                { expiresIn: "5h" }
+            );
+
+            res.send({ user: user, token: token, message: "Vous êtes connecté", status: true });
+        });
 }
 //#endregion POST
 //#region PUT
-const changePassword = (req: any, res: any) => {
+const changePassword = (req: Request, res: Response) => {
     const id = req.params.id;
 
     //permet de vérifier si le string est bien un _id
@@ -64,7 +106,7 @@ const changePassword = (req: any, res: any) => {
     const password = req.body.password;
     bcrypt.hash(password, 10)
         .then((hashedPassword) => {
-            User.findByIdAndUpdate(id, { $set: { passowrd: hashedPassword } })
+            User.findByIdAndUpdate(id, { $set: { password: hashedPassword } })
                 .then((docs) => {
                     res.status(203).send(docs)
                 })
@@ -85,4 +127,5 @@ export const userController = {
     getUserById,
     addUser,
     changePassword,
+    login
 }

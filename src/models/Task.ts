@@ -8,6 +8,7 @@ const TaskSchema = new Schema({
     desc : {type : String, required : false}, 
     files : {type : Array, required : false},
     comment : {type : String, required : false},
+    pole: {type: String, required: true}
 });
 
 export const Task =  mongoose.model("Task", TaskSchema);

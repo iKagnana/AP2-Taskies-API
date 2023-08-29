@@ -75,22 +75,21 @@ const login = (req: Request, res: Response) => {
                 const error = new Error("Aucun utilisateur trouvé");
                 throw error;
             }
-            console.log(user.password);
-            isEqual =  bcrypt.compare(password, user.password);
+            bcrypt.compare(password, user.password)
+            .then((isEqual) => {
+                if (!isEqual) {
+                    const error = new Error("Mauvais mot de passe");
+                    throw error;
+                }
+                const token = jwt.sign(
+                    { email: email, _id: user._id },
+                    process.env.SECRET_KEY!,
+                    { expiresIn: "5h" }
+                );
 
-            console.log(isEqual);
-            if (!isEqual) {
-                const error = new Error("Mauvais mot de passe");
-                throw error;
-            }
+                res.send({ user: user, token: token, message: "Vous êtes connecté", status: true });
+            })
 
-            const token = jwt.sign(
-                { email: email, _id: user._id },
-                process.env.SECRET_KEY!,
-                { expiresIn: "5h" }
-            );
-
-            res.send({ user: user, token: token, message: "Vous êtes connecté", status: true });
         });
 }
 //#endregion POST

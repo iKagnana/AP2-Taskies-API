@@ -11,4 +11,8 @@ router.get("/:id", userController.getUserById);
 router.post("/", userController.addUser);
 router.post("/login", userController.login);
 router.post("/password/:id", userController.changePassword);
+//#region PUT
+router.put("/:id", userController.updateUserById)
+//#region DELETE
+router.delete("/:id", userController.deleteUserById)
 export const userRoute = router;

@@ -8,14 +8,12 @@ const ObjectId = mongoose.Types.ObjectId;
 
 //#region GET
 const getUsers = (req: Request, res: Response) => {
-    User.find((err: any, docs: any) => {
-        if (!err) {
-            res.status(201).send(docs);
-        } else {
-            console.log(err);
-            res.status(505).send(err);
-        }
-    });
+    User.find({})
+        .then((docs) => res.status(201).send(docs))
+        .catch((err) => {
+            console.log(err)
+            res.status(501).send("Erreur dans la récupération de données")
+        })
 };
 
 const getUsersByPole = (req: Request, res: Response) => {
@@ -115,7 +113,21 @@ const changePassword = (req: Request, res: Response) => {
             })
         })
 }
+
+const updateUserById = (req: Request, res: Response) => {
+    User.findByIdAndUpdate(req.params.id, req.body, {new: true})
+        .then((data) => res.status(301).send(data))
+        .catch((err) => {
+            res.status(401).send(err)
+            console.log(err)
+        })
+}
 //#endregion PUT
+//#region DELETE
+const deleteUserById = (req: Request, res: Response) => {
+    User.findByIdAndDelete(req.params.id)
+}
+//#endregion DELETE
 
 //#region 
 export const userController = {
@@ -124,5 +136,7 @@ export const userController = {
     getUserById,
     addUser,
     changePassword,
-    login
+    login,
+    updateUserById,
+    deleteUserById
 }

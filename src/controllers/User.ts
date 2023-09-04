@@ -115,17 +115,42 @@ const changePassword = (req: Request, res: Response) => {
 }
 
 const updateUserById = (req: Request, res: Response) => {
-    User.findByIdAndUpdate(req.params.id, req.body, {new: true})
-        .then((data) => res.status(301).send(data))
-        .catch((err) => {
-            res.status(401).send(err)
-            console.log(err)
-        })
+    const password = req.body.password;
+
+    if (password !== "") {
+        bcrypt.hash(password, 10)
+            .then((hashedPassword) => {
+                req.body.password = hashedPassword
+                User.findByIdAndUpdate(req.params.id, req.body, {new: true})
+                    .then((data) => res.status(301).send(data))
+                    .catch((err) => {
+                        res.status(401).send(err)
+                        console.log(err)
+                    })
+            })
+    } else {
+        const updatedUser = {
+            lastname : req.body.lastname,
+            firstname : req.body.firstname,
+            email : req.body.email,
+            pole : req.body.pole,
+            role : req.body.role,
+        }
+        User.findByIdAndUpdate(req.params.id, updatedUser, {new: true})
+            .then((data) => res.status(301).send(data))
+            .catch((err) => {
+                res.status(401).send(err)
+                console.log(err)
+            })
+    }
+
+
 }
 //#endregion PUT
 //#region DELETE
 const deleteUserById = (req: Request, res: Response) => {
     User.findByIdAndDelete(req.params.id)
+        .then((value) => console.log(value))
 }
 //#endregion DELETE
 

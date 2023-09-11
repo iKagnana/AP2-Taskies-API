@@ -10,7 +10,8 @@ router.get("/:id", userController.getUserById);
 //#region POST
 router.post("/", userController.addUser);
 router.post("/login", userController.login);
-router.post("/password/:id", userController.changePassword);
+router.post("/reset/password", userController.getCodeEmail)
+router.post("/password/", userController.changePassword);
 //#region PUT
 router.put("/:id", userController.updateUserById)
 //#region DELETE

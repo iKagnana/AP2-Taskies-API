@@ -3,6 +3,7 @@ import bcrypt from "bcrypt";
 import { User } from "../models/User";
 import express, {Request, Response} from "express";
 import jwt from "jsonwebtoken"
+import transporter from "~/config/mailConfig";
 
 const ObjectId = mongoose.Types.ObjectId;
 
@@ -46,6 +47,16 @@ const addUser = (req: Request, res: Response) => {
     let user = req.body;
     let password = req.body.password
 
+    //send email in order to change user's password
+    transporter.sendMail({
+        from: '"administrateur GSB" <kagnana.ith@ecole-isitech.fr>',
+        to: user.email,
+        subject: "Modification du mot de passe",
+        text: "Voici votre mot de passe : " + password,
+    })
+        .then(info => console.log("Message sended !"))
+        .catch((err) => console.log("Message cannot be sended"))
+
     //hash password
     bcrypt
         .hash(password, 10)
@@ -88,20 +99,40 @@ const login = (req: Request, res: Response) => {
 
         });
 }
+
+const getCodeEmail = (req: Request, res: Response) => {
+    User.find({email : req.body.email})
+        .then((user) => {
+            if (user) {
+
+                transporter.sendMail({
+                    from: '"administrateur GSB" <kagnana.ith@ecole-isitech.fr>',
+                    to: req.body.email,
+                    subject: "Réinitialisation de votre mot de passe",
+                    text: "Cher utilisateur, suite à la perte de votre mot de passe voici le lien pour réinitialiser votre mot de passe : " +
+                    encodeURI("http://localhost:5173/reset-password/id=" + req.body.email)
+                })
+                    .then(info => {
+                        res.send("Email bien envoyé.")
+                        console.log("Message sended !")
+                    })
+                    .catch((err) => console.log("Message cannot be sended"))
+            }
+
+        })
+        .catch((err) => {
+            console.log(err)
+            res.status(204).send("Couldn't find the user.")
+        })
+}
 //#endregion POST
 //#region PUT
 const changePassword = (req: Request, res: Response) => {
-    const id = req.params.id;
-
-    //permet de vérifier si le string est bien un _id
-    if (!ObjectId.isValid(id)) {
-        return res.status(505).send(`Aucun utilisateur trouvé pour l'id : ${id}`);
-    }
-
+    const search = {email: req.body.email}
     const password = req.body.password;
     bcrypt.hash(password, 10)
         .then((hashedPassword) => {
-            User.findByIdAndUpdate(id, { $set: { password: hashedPassword } })
+            User.findOneAndUpdate(search, { $set: { password: hashedPassword } })
                 .then((docs) => {
                     res.status(203).send(docs)
                 })
@@ -118,6 +149,16 @@ const updateUserById = (req: Request, res: Response) => {
     const password = req.body.password;
 
     if (password !== "") {
+        //send email in order to change user's password
+        transporter.sendMail({
+            from: '"administrateur GSB" <kagnana.ith@ecole-isitech.fr>',
+            to: req.body.email,
+            subject: "Modification du mot de passe",
+            text: "Voici votre mot de passe : " + password + "\nVeuillez vous rediriger vers cette page : lien",
+        })
+            .then(info => console.log("Message sended !"))
+            .catch((err) => console.log("Message cannot be sended"))
+
         bcrypt.hash(password, 10)
             .then((hashedPassword) => {
                 req.body.password = hashedPassword
@@ -161,6 +202,7 @@ export const userController = {
     getUserById,
     addUser,
     changePassword,
+    getCodeEmail,
     login,
     updateUserById,
     deleteUserById

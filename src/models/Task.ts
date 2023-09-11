@@ -3,12 +3,10 @@ const {Schema} = mongoose;
 
 const TaskSchema = new Schema({
     title : {type : String, required : true},
-    status : {type: Number, required : true},
+    status : {type: String, required : true},
     assignee : {type : String, required : true},
-    desc : {type : String, required : false}, 
-    files : {type : Array, required : false},
+    desc : {type : String, required : false},
     comment : {type : String, required : false},
     pole: {type: String, required: true}
 });
-
 export const Task =  mongoose.model("Task", TaskSchema);

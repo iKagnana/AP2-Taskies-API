@@ -1,17 +1,18 @@
 import { Task } from "../models/Task";
 import {User} from "~/models/User";
 import {Request, Response} from "express"
+import {connect} from "mongoose";
 
 //#region GET
 const getTasksByAssignee = (req: Request, res: Response) => {
-    Task.find({assignee: req.body.assignee})
-        .then((tasks) => res.send(tasks))
+    Task.find({assignee: req.params.assignee})
+        .then((tasks) => res.status(200).send(tasks))
         .catch((err) => console.log(err))
 
 }
 
 const getTasksByPole = (req: Request, res: Response) => {
-    Task.find({pole: req.body.pole})
+    Task.find({pole: req.params.pole})
         .then((tasks) => res.send(tasks))
         .catch((err) => console.log(err))
 }
@@ -35,11 +36,27 @@ const updateTaskById = (req: Request, res: Response) => {
             console.log(err)
         })
 }
+
+const changeStatusTaskById = (req: Request, res: Response) => {
+    Task.findByIdAndUpdate(req.params.id, {index: req.body.index, status: req.body.status}, {new: true})
+        .then((data) => res.send(data))
+        .catch((err) => {
+            res.send(err)
+            console.log(err)
+        })
+}
 //#endregion PUT
 //#region DELETE
 const deleteTaskById = (req: Request, res : Response) => {
-    User.findOneAndUpdate({tasks: req.params.id}, {$pull : {tasks : req.params.id}})
+    //User.findOneAndUpdate({tasks: req.params.id}, {$pull : {tasks : req.params.id}})
+    console.log("oui")
+    console.log(req.params.id)
     Task.findByIdAndDelete(req.params.id)
+        .then((docs) => {
+            res.send(docs)
+        })
+
+
 
 
 }
@@ -49,6 +66,7 @@ export const taskController = {
     getTasksByAssignee,
     getTasksByPole,
     updateTaskById,
+    changeStatusTaskById,
     deleteTaskById,
     addTask
 }

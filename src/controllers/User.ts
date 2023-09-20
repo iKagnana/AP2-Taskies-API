@@ -1,9 +1,11 @@
 import mongoose from "mongoose";
 import bcrypt from "bcrypt";
 import { User } from "../models/User";
+import {CodeEmail} from "~/models/CodeEmail";
 import express, {Request, Response} from "express";
 import jwt from "jsonwebtoken"
 import transporter from "~/config/mailConfig";
+import Sqids from "sqids";
 
 const ObjectId = mongoose.Types.ObjectId;
 
@@ -104,19 +106,29 @@ const getCodeEmail = (req: Request, res: Response) => {
     User.find({email : req.body.email})
         .then((user) => {
             if (user) {
+                const sqids = new Sqids({
+                    minLength : 10
+                })
+                const id = sqids.encode([req.body.email.length, Math.floor(Math.random() * 9)])
 
+                const newCode = new CodeEmail({code: id, user: req.body.email})
+                newCode.save()
                 transporter.sendMail({
                     from: '"administrateur GSB" <kagnana.ith@ecole-isitech.fr>',
                     to: req.body.email,
                     subject: "Réinitialisation de votre mot de passe",
                     text: "Cher utilisateur, suite à la perte de votre mot de passe voici le lien pour réinitialiser votre mot de passe : " +
-                    encodeURI("http://localhost:5173/reset-password/id=" + req.body.email)
+                        "http://localhost:5173/reset-password/id=" + id
                 })
                     .then(info => {
                         res.send("Email bien envoyé.")
                         console.log("Message sended !")
                     })
                     .catch((err) => console.log("Message cannot be sended"))
+
+
+
+
             }
 
         })
@@ -134,7 +146,18 @@ const changePassword = (req: Request, res: Response) => {
         .then((hashedPassword) => {
             User.findOneAndUpdate(search, { $set: { password: hashedPassword } })
                 .then((docs) => {
-                    res.status(203).send(docs)
+                    transporter.sendMail({
+                        from: '"administrateur GSB" <kagnana.ith@ecole-isitech.fr>',
+                        to: req.body.email,
+                        subject: "Réinitialisation de votre mot de passe",
+                        text: "Cher utilisateur, votre mot de passe a bien été réinitialisé."
+                    })
+                        .then(info => {
+                            res.status(203).send(docs)
+                            console.log("Message sended !")
+                        })
+                        .catch((err) => console.log("Message cannot be sended"))
+
                 })
         })
         .catch((err) => {
@@ -154,7 +177,7 @@ const updateUserById = (req: Request, res: Response) => {
             from: '"administrateur GSB" <kagnana.ith@ecole-isitech.fr>',
             to: req.body.email,
             subject: "Modification du mot de passe",
-            text: "Voici votre mot de passe : " + password + "\nVeuillez vous rediriger vers cette page : lien",
+            text: "Cher utilisateur votre mot de passe a été modifié. \n Votre identifiant :" + req.body.email + " \n Votre mot de passe : " + password,
         })
             .then(info => console.log("Message sended !"))
             .catch((err) => console.log("Message cannot be sended"))

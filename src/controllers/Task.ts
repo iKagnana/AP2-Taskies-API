@@ -48,12 +48,10 @@ const changeStatusTaskById = (req: Request, res: Response) => {
 //#endregion PUT
 //#region DELETE
 const deleteTaskById = (req: Request, res : Response) => {
-    //User.findOneAndUpdate({tasks: req.params.id}, {$pull : {tasks : req.params.id}})
-    console.log("oui")
-    console.log(req.params.id)
     Task.findByIdAndDelete(req.params.id)
-        .then((docs) => {
-            res.send(docs)
+        .then(() => {
+            res.send(204)
+            console.log("Tâche supprimée")
         })
 
 

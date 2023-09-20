@@ -14,9 +14,11 @@ app.use(express.json());
 //#region IMPORT ROUTES
 import { userRoute } from "./routes/User";
 import {taskRoute} from "~/routes/Task";
+import {codeEmailRoute} from "~/routes/CodeEmailRoute";
 //#region ROUTES
 app.use("/users", userRoute);
 app.use("/tasks", taskRoute);
+app.use("/codeEmail", codeEmailRoute);
 
 app.listen(PORT, () => {
     console.log(`The app listening at http://localhost:${PORT}`);

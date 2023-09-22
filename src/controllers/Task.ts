@@ -4,6 +4,13 @@ import {Request, Response} from "express"
 import {connect} from "mongoose";
 
 //#region GET
+
+const getTasks = (req: Request, res: Response) => {
+    Task.find()
+        .then((tasks) => res.status(200).send(tasks))
+        .catch((err) => console.log(err))
+
+}
 const getTasksByAssignee = (req: Request, res: Response) => {
     Task.find({assignee: req.params.assignee})
         .then((tasks) => res.status(200).send(tasks))
@@ -61,6 +68,7 @@ const deleteTaskById = (req: Request, res : Response) => {
 //#endregion DELETE
 
 export const taskController = {
+    getTasks,
     getTasksByAssignee,
     getTasksByPole,
     updateTaskById,

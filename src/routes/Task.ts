@@ -4,6 +4,7 @@ const router = express.Router();
 import { taskController } from "../controllers/Task";
 
 //#region GET
+router.get("/", taskController.getTasks)
 router.get("/assignee/:assignee", taskController.getTasksByAssignee);
 router.get("/pole/:pole", taskController.getTasksByPole);
 //#region POST

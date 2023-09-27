@@ -20,6 +20,12 @@ app.use("/users", userRoute);
 app.use("/tasks", taskRoute);
 app.use("/codeEmail", codeEmailRoute);
 
+app.all("*", function (req: any, res: any) {
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Headers", "Content-Type,Content-Length, Authorization, Accept,X-Requested-With");
+    res.header("Access-Control-Allow-Methods", "PUT,POST,GET,DELETE,OPTIONS");
+});
+
 app.listen(PORT, () => {
     console.log(`The app listening at http://localhost:${PORT}`);
 });

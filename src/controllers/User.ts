@@ -126,10 +126,6 @@ const getCodeEmail = (req: Request, res: Response) => {
                         console.log("Message sended !")
                     })
                     .catch((err) => console.log("Message cannot be sended"))
-
-
-
-
             }
 
         })

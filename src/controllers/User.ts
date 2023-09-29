@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 import bcrypt from "bcrypt";
 import { User } from "../models/User";
 import {CodeEmail} from "~/models/CodeEmail";
-import express, {Request, Response} from "express";
+import {Request, Response} from "express";
 import jwt from "jsonwebtoken"
 import transporter from "~/config/mailConfig";
 import Sqids from "sqids";
@@ -106,10 +106,11 @@ const getCodeEmail = (req: Request, res: Response) => {
     User.find({email : req.body.email})
         .then((user) => {
             if (user) {
+                //génération d'un id aléatoire
                 const sqids = new Sqids({
                     minLength : 10
                 })
-                const id = sqids.encode([req.body.email.length, Math.floor(Math.random() * 9)])
+                const id = sqids.encode([req.body.email.length, Math.floor(Math.random() * 9), Math.floor(Math.random() * 9)])
 
                 const newCode = new CodeEmail({code: id, user: req.body.email})
                 newCode.save()
@@ -146,6 +147,7 @@ const changePassword = (req: Request, res: Response) => {
         .then((hashedPassword) => {
             User.findOneAndUpdate(search, { $set: { password: hashedPassword } })
                 .then((docs) => {
+                    //send email
                     transporter.sendMail({
                         from: '"administrateur GSB" <kagnana.ith@ecole-isitech.fr>',
                         to: req.body.email,
